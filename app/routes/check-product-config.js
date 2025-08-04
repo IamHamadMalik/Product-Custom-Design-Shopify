@@ -1,4 +1,4 @@
-// app/routes/app.check-product-config.js
+// app/routes/check-product-config.js
 import { json } from "@remix-run/node";
 import { PrismaClient } from "@prisma/client";
 
