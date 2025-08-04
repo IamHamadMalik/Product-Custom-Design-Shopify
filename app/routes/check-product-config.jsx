@@ -1,10 +1,17 @@
 // app/routes/check-product-config.js
 import { json } from "@remix-run/node";
 import { PrismaClient } from "@prisma/client";
+import { authenticate } from "../shopify.server";
 
 const prisma = new PrismaClient();
 
 export const loader = async ({ request }) => {
+  // Authenticate the app proxy request
+  const { session, storefront } = await authenticate.public.appProxy(request);
+  if (!session || !storefront) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const url = new URL(request.url);
   const productId = url.searchParams.get("productId");
 
