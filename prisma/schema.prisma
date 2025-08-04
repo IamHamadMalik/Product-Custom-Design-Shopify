@@ -31,3 +31,19 @@ model Session {
   collaborator  Boolean?  @default(false)
   emailVerified Boolean?  @default(false)
 }
+
+model ProductTagsIndex {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  shop    String   // your shop domain, if you support multiple stores
+  tags    String[] // stores unique tags as an array
+  updated DateTime @updatedAt
+}
+
+model ProductEditorConfig {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId             String   @unique
+  shop                  String
+  configurationJson     Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
