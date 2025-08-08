@@ -8,11 +8,11 @@ export async function loader({ request }) {
   try {
     const url = new URL(request.url);
     const productId = url.searchParams.get("productId");
-    const shop = url.searchParams.get("shop");
 
-    if (!productId || !shop) {
-      return json({ error: "Missing productId or shop" }, { status: 400 });
+    if (!productId) {
+      return json({ error: "Missing productId" }, { status: 400 });
     }
+    const shop = process.env.SHOP;
 
     const config = await prisma.productEditorConfig.findFirst({
       where: { productId, shop },
