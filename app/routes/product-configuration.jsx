@@ -3,7 +3,6 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Public GET endpoint for product configuration
 export async function loader({ request }) {
   try {
     const url = new URL(request.url);
@@ -12,7 +11,7 @@ export async function loader({ request }) {
     if (!productId) {
       return json({ error: "Missing productId" }, { status: 400 });
     }
-    const shop = process.env.SHOP;
+    const shop = process.env.SHOP; // from .env
 
     const config = await prisma.productEditorConfig.findFirst({
       where: { productId, shop },
@@ -20,10 +19,10 @@ export async function loader({ request }) {
 
     return json({
       success: true,
-      configurationJson: config ? config.configurationJson : null,
+      configurationJson: config?.configurationJson || null,
     });
   } catch (err) {
-    console.error("Error fetching product config:", err);
+    console.error("❌ Error fetching product config:", err);
     return json({ error: "Internal server error" }, { status: 500 });
   }
 }
