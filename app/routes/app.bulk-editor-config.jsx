@@ -62,7 +62,7 @@ export const loader = async ({ request }) => {
 
 /** ------------------ ACTION ------------------ **/
 export const action = async ({ request }) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const formData = await request.formData();
 
   const configsRaw = formData.getAll("configs");
@@ -80,6 +80,8 @@ export const action = async ({ request }) => {
 
   for (const config of configs) {
     console.log("🔍 Upserting config:", config);
+    
+    // 1. Save config in DB
     await prisma.productEditorConfig.upsert({
       where: { productId: config.productId },
       update: {
@@ -87,10 +89,45 @@ export const action = async ({ request }) => {
       },
       create: {
         productId: config.productId,
-        shop: process.env.SHOP, // Replace with your dynamic shop if needed
+        shop: process.env.SHOP,
         configurationJson: config.configurationJson || null,
       },
     });
+
+    // 2. Set Shopify metafield flag
+    try {
+      await admin.graphql(`
+        mutation setProductConfigFlag($productId: ID!, $value: String!) {
+          metafieldsSet(metafields: [
+            {
+              ownerId: $productId
+              namespace: "custom"
+              key: "has_config"
+              type: "boolean"
+              value: $value
+            }
+          ]) {
+            metafields {
+              id
+              key
+              value
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }
+      `, {
+        variables: {
+          productId: `gid://shopify/Product/${config.productId}`,
+          value: config.configurationJson ? "true" : "false",
+        },
+      });
+      console.log(`✅ Metafield flag set for product ${config.productId}`);
+    } catch (err) {
+      console.error(`❌ Failed to set metafield for product ${config.productId}`, err);
+    }
   }
 
   return redirect(`/app/all-products?success=1`);
