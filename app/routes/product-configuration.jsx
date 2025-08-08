@@ -1,5 +1,7 @@
 import { json } from "@remix-run/node";
-import { prisma } from "../db.server";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 // Public GET endpoint for product configuration
 export async function loader({ request }) {
